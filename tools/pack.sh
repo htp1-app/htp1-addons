@@ -1,7 +1,8 @@
 #!/bin/bash
 # tools/pack.sh <id> [<outdir>]
 # Writes <outdir>/htp1-addon-<id>-<version>.tar.gz and its .sha256.
-# The tarball is addons/<id>/ minus build/ and tests/, under one top-level directory named <id>.
+# An addon with a package.json is built first (npm ci, npm run build). The tarball holds only what
+# runs on the unit: addon.json, README.md, bin, etc, units, debs, flows, www, hooks.
 
 set -eu
 
@@ -12,6 +13,10 @@ OUT="${2:-$ROOT/dist}"
 SRC="$ROOT/addons/$ID"
 [[ -f "$SRC/addon.json" ]] || { echo "pack: $SRC has no addon.json" >&2; exit 1; }
 
+if [[ -f "$SRC/package.json" ]]; then
+    (cd "$SRC" && npm ci --no-audit --no-fund --loglevel=error && npm run build --silent) || { echo "pack: build of $ID failed" >&2; exit 1; }
+fi
+
 for PY in python3 python; do "$PY" -c pass >/dev/null 2>&1 && break; done
 mkdir -p "$OUT"
 
@@ -21,11 +26,16 @@ import gzip, json, os, sys, tarfile
 src, aid, out = sys.argv[1:4]
 ver = json.load(open(os.path.join(src, "addon.json")))["version"]
 name = "htp1-addon-%s-%s.tar.gz" % (aid, ver)
-skip = {"build", "tests"}
+ship_files = {"addon.json", "README.md"}
+ship_dirs = {"bin", "etc", "units", "debs", "flows", "www", "hooks"}
 with open(os.path.join(out, name), "wb") as raw, gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0) as gz, tarfile.open(fileobj=gz, mode="w") as tar:
     for root, dirs, files in os.walk(src):
         rel = os.path.relpath(root, src).replace(os.sep, "/")
-        dirs[:] = sorted(d for d in dirs if not (rel == "." and d in skip))
+        if rel == ".":
+            dirs[:] = sorted(d for d in dirs if d in ship_dirs)
+            files = [f for f in files if f in ship_files]
+        else:
+            dirs.sort()
         top = rel.split("/")[0] if rel != "." else ""
         for d in dirs:
             ti = tarfile.TarInfo(aid + "/" + (d if rel == "." else rel + "/" + d))

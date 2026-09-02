@@ -28,9 +28,9 @@ and removes with a click.
   state/          the addon's runtime state; kept when the addon is upgraded
 ```
 
-`tools/pack.sh` produces the tarball `addonctl install` takes: the directory
-above, minus `build/` and `tests/`, under a single top-level directory named
-`<id>`.
+`tools/pack.sh` produces the tarball `addonctl install` takes: the runtime
+files above under a single top-level directory named `<id>`. An addon with a
+`package.json` is built first, so `www/` is never committed.
 
 ## Manifest
 

@@ -11,6 +11,7 @@ firmware does with them are in [docs/format.md](docs/format.md).
 | [`airplay`](addons/airplay) | AirPlay 2 receiver: shairport-sync 4.3.7 with nqptp and avahi-daemon | `receiver-core` |
 | [`spotify`](addons/spotify) | Spotify Connect receiver: librespot 0.4.2 | `receiver-core` |
 | [`dlna`](addons/dlna) | UPnP/DLNA renderer: gmediarender with a wake-on-play watcher | `receiver-core` |
+| [`volume-calibration`](addons/volume-calibration) | The Volume Calibration wizard, as a page opened from the Addons page | |
 
 The three receivers play into `default:I2S`, the sink Roon, USB audio and
 Bluetooth already use, so their audio gets Dirac, bass management and the
@@ -32,7 +33,8 @@ its main branch, or a direct URL to an index.
 
 ```
 addons/<id>/     one addon: addon.json, bin/, etc/, units/, debs/, hooks/,
-                 build/ (Docker cross-build recipe), tests/
+                 build/ (Docker cross-build recipe), tests/; a page addon
+                 has src/ and a package.json, and www/ is built at pack time
 index.json       the catalog the unit reads: versions, download URLs, checksums
 tools/pack.sh    builds one addon's tarball
 tools/index.sh   packs every addon and regenerates index.json for a release tag
