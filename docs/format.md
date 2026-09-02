@@ -105,18 +105,23 @@ The unit exposes the catalog and the actions to the web UI:
 | Endpoint | Does |
 |---|---|
 | `GET /addons/catalog` | Fetches every added repository (or only `?repo=`) and returns `{repos: [{repo, url, name, updated, error, addons}]}`, one entry per repository, each with its own error. |
-| `POST /addons/install` `{"id"}` | Downloads, verifies and installs the addon and its dependencies. Responds at once; progress is published at `/svronly/addonJobs/<id>` as `{state, detail, at}` with states `starting`, `downloading`, `installing`, `done`, `error`, cleared half a minute after finishing. |
+| `POST /addons/install` `{"id", "repo", "version", "sha256"}` | Downloads, verifies and installs the addon and its dependencies, from the repository the page showed at the version and checksum it showed; any of the three may be omitted, and a mismatch is refused. Responds at once; progress is published at `/svronly/addonJobs/<id>` as `{state, detail, at}` with states `starting`, `downloading`, `installing`, `done`, `error`, cleared half a minute after finishing. One install or removal runs at a time; another request meanwhile gets 409. |
 | `POST /addons/remove` `{"id"}` | Removes the addon; states `removing`, `removed`, `error`. |
 | `POST /addons/refresh` | Brings the MSO's addon entries and inputs in line with the installed manifests, broadcast to every UI, and starts or stops units whose switch changed. Called by `addonctl` after every install or removal. |
 
 ## What the firmware does with it
 
-- Install: unpack, install `debs/` that are not already present (recording
-  which ones in `state/packages`), install drop-ins, register `units/`,
-  create the `flows/` and `www/` symlinks, run `hooks/install`, start
-  `enable` units, then refresh so the input and switch appear on every
-  connected UI. A package that carries `flows/` restarts Node-RED instead,
-  which reads its flows directory only at start.
+- Install: unpack into a staging directory, install `debs/` that are not
+  already present (recording which ones in `state/packages`), install
+  drop-ins, register `units/`, create the `flows/` and `www/` symlinks, run
+  `hooks/install`, start `enable` units, then refresh so the input and
+  switch appear on every connected UI and units follow their switches. A
+  package that carries `flows/` restarts Node-RED instead, which reads its
+  flows directory only at start. When a version is replaced, the old one is
+  taken out of the system first (units, drop-ins, links) and set aside with
+  its `state/` carried over; if the new one fails to activate, the old one
+  is put back. Under `node_in_ram` the links are made in the RAM copy of
+  the Node-RED tree as well as the firmware's.
 - Boot: recreate the symlinks if missing, run `hooks/boot`.
 - After a firmware update: re-register units and drop-ins, recreate the
   symlinks, run `hooks/post-update`.
@@ -127,6 +132,11 @@ The unit exposes the catalog and the actions to the web UI:
 
 Hooks receive `ADDON_ID`, `ADDON_DIR`, `ADDONS_DIR` and `OLYMPIA` in the
 environment.
+
+Versions follow SemVer: `major.minor.patch`, a prerelease such as
+`1.0.0-beta.2` sorts below `1.0.0`, and build metadata after `+` is
+ignored. The unit decides what counts as an update; the page shows what it
+says.
 
 ## Constraints
 
