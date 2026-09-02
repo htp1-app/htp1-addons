@@ -18,7 +18,7 @@ for d in "$ROOT"/addons/*/; do
 done
 
 "$PY" - "$ROOT" "$OUT" "$TAG" "$REPO_URL" <<'EOF'
-import glob, hashlib, json, os, sys, datetime
+import datetime, glob, hashlib, json, os, sys
 root, out, tag, repo = sys.argv[1:5]
 addons = []
 for mf in sorted(glob.glob(os.path.join(root, "addons", "*", "addon.json"))):
@@ -30,9 +30,10 @@ for mf in sorted(glob.glob(os.path.join(root, "addons", "*", "addon.json"))):
     entry["sha256"] = hashlib.sha256(open(path, "rb").read()).hexdigest()
     entry["size"] = os.path.getsize(path)
     addons.append(entry)
-index = {"name": repo.rsplit("/", 1)[-1], "updated": datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"), "addons": addons}
-with open(os.path.join(root, "index.json"), "w", newline="
-") as f:
-    json.dump(index, f, indent=2); f.write("\n")
+updated = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+index = {"name": repo.rsplit("/", 1)[-1], "updated": updated, "addons": addons}
+with open(os.path.join(root, "index.json"), "w", newline="\n") as f:
+    json.dump(index, f, indent=2)
+    f.write("\n")
 print("index.json: %d addons, release %s" % (len(addons), tag))
 EOF

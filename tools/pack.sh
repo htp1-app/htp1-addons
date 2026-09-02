@@ -15,14 +15,14 @@ SRC="$ROOT/addons/$ID"
 for PY in python3 python; do "$PY" -c pass >/dev/null 2>&1 && break; done
 mkdir -p "$OUT"
 
-# Modes are set here rather than taken from the checkout, so the result is the same on every host.
+# Modes, owners and times are fixed here, so the same sources give the same bytes on every host and run.
 NAME=$("$PY" - "$SRC" "$ID" "$OUT" <<'EOF'
-import json, os, sys, tarfile
+import gzip, json, os, sys, tarfile
 src, aid, out = sys.argv[1:4]
 ver = json.load(open(os.path.join(src, "addon.json")))["version"]
 name = "htp1-addon-%s-%s.tar.gz" % (aid, ver)
 skip = {"build", "tests"}
-with tarfile.open(os.path.join(out, name), "w:gz") as tar:
+with open(os.path.join(out, name), "wb") as raw, gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0) as gz, tarfile.open(fileobj=gz, mode="w") as tar:
     for root, dirs, files in os.walk(src):
         rel = os.path.relpath(root, src).replace(os.sep, "/")
         dirs[:] = sorted(d for d in dirs if not (rel == "." and d in skip))
@@ -37,6 +37,7 @@ with tarfile.open(os.path.join(out, name), "w:gz") as tar:
             ti = tar.gettarinfo(path, aid + "/" + (f if rel == "." else rel + "/" + f))
             ti.uid = ti.gid = 0
             ti.uname = ti.gname = "root"
+            ti.mtime = 0
             ti.mode = 0o755 if top in ("bin", "hooks") else 0o644
             with open(path, "rb") as fh:
                 tar.addfile(ti, fh)
