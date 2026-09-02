@@ -50,7 +50,7 @@ above, minus `build/` and `tests/`, under a single top-level directory named
 
 | Field | Meaning |
 |---|---|
-| `id` | Directory name and switch key. Lower-case letters, digits, hyphens. |
+| `id` | Directory name and switch key. Lower-case letters, digits, hyphens. `catalog`, `install`, `remove` and `refresh` are taken by the endpoints. |
 | `version` | Semantic version of the package. |
 | `label`, `summary` | Shown on the Addons page. |
 | `requires.firmware` | Constraint checked against `/var/lib/olympia/swver.txt` at install. |
@@ -104,14 +104,16 @@ The unit exposes the catalog and the actions to the web UI:
 | `GET /addons/catalog` | Fetches the index for the stored repository (or `?repo=` for one being typed) and returns it. |
 | `POST /addons/install` `{"id"}` | Downloads, verifies and installs the addon and its dependencies. Responds at once; progress is published at `/svronly/addonJobs/<id>` as `{state, detail, at}` with states `starting`, `downloading`, `installing`, `done`, `error`, cleared half a minute after finishing. |
 | `POST /addons/remove` `{"id"}` | Removes the addon; states `removing`, `removed`, `error`. |
-| `POST /addons/refresh` | Runs the MSO fixup, which seeds or drops inputs and switches. Called by `addonctl` after every install or removal. |
+| `POST /addons/refresh` | Brings the MSO's addon entries and inputs in line with the installed manifests, broadcast to every UI, and starts or stops units whose switch changed. Called by `addonctl` after every install or removal. |
 
 ## What the firmware does with it
 
 - Install: unpack, install `debs/` that are not already present (recording
   which ones in `state/packages`), install drop-ins, register `units/`,
   create the `flows/` and `www/` symlinks, run `hooks/install`, start
-  `enable` units, then run an MSO fixup so the input and switch appear.
+  `enable` units, then refresh so the input and switch appear on every
+  connected UI. A package that carries `flows/` restarts Node-RED instead,
+  which reads its flows directory only at start.
 - Boot: recreate the symlinks if missing, run `hooks/boot`.
 - After a firmware update: re-register units and drop-ins, recreate the
   symlinks, run `hooks/post-update`.
