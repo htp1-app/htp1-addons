@@ -52,6 +52,7 @@ files above under a single top-level directory named `<id>`. An addon with a
 |---|---|
 | `id` | Directory name and switch key. Lower-case letters, digits, hyphens. `catalog`, `install`, `remove` and `refresh` are taken by the endpoints. |
 | `version` | Semantic version of the package. |
+| `published` | `false` keeps a work-in-progress addon out of the catalog: `tools/index.sh` neither packs nor lists it, and a unit ignores such an entry if it meets one. Absent means published. |
 | `label`, `summary` | Shown on the Addons page. |
 | `requires.firmware` | Constraint checked against `/var/lib/olympia/swver.txt` at install. |
 | `requires.addons` | Addons that must be installed first; removal is refused while a dependant remains. |
@@ -89,9 +90,11 @@ for each release:
 }
 ```
 
-The unit's Addons page takes a repository setting, stored at
-`/svronly/addonRepo/url`. A GitHub repository URL means the `index.json` on
-its main branch; any other URL is fetched as the index itself. The unit
+The unit's Addons page keeps a list of repositories at
+`/svronly/addonRepos`, empty until the user adds one; the firmware suggests
+none. A GitHub repository URL means the `index.json` on its main branch; any
+other URL is fetched as the index itself. When more than one repository
+offers an addon id, the first added wins. The unit
 fetches the index and the tarballs with its own `curl`, verifies `sha256`
 before installing, and refuses an entry without one. Dependencies listed in
 `requires.addons` are installed first, and an installed dependency older
@@ -101,7 +104,7 @@ The unit exposes the catalog and the actions to the web UI:
 
 | Endpoint | Does |
 |---|---|
-| `GET /addons/catalog` | Fetches the index for the stored repository (or `?repo=` for one being typed) and returns it. |
+| `GET /addons/catalog` | Fetches every added repository (or only `?repo=`) and returns `{repos: [{repo, url, name, updated, error, addons}]}`, one entry per repository, each with its own error. |
 | `POST /addons/install` `{"id"}` | Downloads, verifies and installs the addon and its dependencies. Responds at once; progress is published at `/svronly/addonJobs/<id>` as `{state, detail, at}` with states `starting`, `downloading`, `installing`, `done`, `error`, cleared half a minute after finishing. |
 | `POST /addons/remove` `{"id"}` | Removes the addon; states `removing`, `removed`, `error`. |
 | `POST /addons/refresh` | Brings the MSO's addon entries and inputs in line with the installed manifests, broadcast to every UI, and starts or stops units whose switch changed. Called by `addonctl` after every install or removal. |

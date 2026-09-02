@@ -14,7 +14,11 @@ REPO_URL=$(git -C "$ROOT" remote get-url origin | sed -E 's#^git@github\.com:#ht
 for PY in python3 python; do "$PY" -c pass >/dev/null 2>&1 && break; done
 
 for d in "$ROOT"/addons/*/; do
-    "$ROOT/tools/pack.sh" "$(basename "$d")" "$OUT" >/dev/null
+    if "$PY" -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("published", True) else 1)' "$d/addon.json"; then
+        "$ROOT/tools/pack.sh" "$(basename "$d")" "$OUT" >/dev/null
+    else
+        echo "skipping $(basename "$d"): not published"
+    fi
 done
 
 "$PY" - "$ROOT" "$OUT" "$TAG" "$REPO_URL" <<'EOF'
@@ -23,6 +27,8 @@ root, out, tag, repo = sys.argv[1:5]
 addons = []
 for mf in sorted(glob.glob(os.path.join(root, "addons", "*", "addon.json"))):
     m = json.load(open(mf))
+    if not m.get("published", True):
+        continue
     name = "htp1-addon-%s-%s.tar.gz" % (m["id"], m["version"])
     path = os.path.join(out, name)
     entry = {k: m[k] for k in ("id", "version", "label", "summary", "requires") if k in m}

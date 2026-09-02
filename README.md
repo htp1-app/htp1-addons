@@ -21,9 +21,11 @@ their input when a sender starts playing. One plays at a time.
 
 ## Install
 
-On the HTP-1 web UI, open Settings, then Addons. The page lists what this
-repository offers, with Install, Update and Remove for each, and a switch
-for anything that runs as a service. The unit downloads the package from the
+On the HTP-1 web UI, open Settings, then Addons, and add this repository's
+address, `https://github.com/htp1-app/htp1-addons`. The unit ships with no
+repositories; those added are kept. Each repository is listed with what it
+offers, with Install, Update and Remove per addon, a switch for anything that
+runs as a service, and its own Refresh. The unit downloads the package from the
 release listed in [index.json](index.json), checks its SHA-256, and installs
 it; dependencies such as `receiver-core` are installed first. The repository
 field on that page takes any GitHub repository URL with an `index.json` on
@@ -39,6 +41,13 @@ index.json       the catalog the unit reads: versions, download URLs, checksums
 tools/pack.sh    builds one addon's tarball
 tools/index.sh   packs every addon and regenerates index.json for a release tag
 ```
+
+## Work in progress
+
+An addon with `"published": false` in its manifest stays in the repository
+but out of the catalog, so it can be developed on main without appearing on
+anyone's Addons page. Pack it by hand with `tools/pack.sh <id>` to try it on
+a unit.
 
 ## Releasing
 
