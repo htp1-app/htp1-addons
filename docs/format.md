@@ -108,16 +108,17 @@ The unit exposes the catalog and the actions to the web UI:
 
 ## What the firmware does with it
 
-- Install: unpack, install `debs/` that are not already present, install
-  drop-ins, register `units/`, create the `flows/` and `www/` symlinks, run
-  `hooks/install`, start `enable` units, then run an MSO fixup so the input
-  and switch appear.
+- Install: unpack, install `debs/` that are not already present (recording
+  which ones in `state/packages`), install drop-ins, register `units/`,
+  create the `flows/` and `www/` symlinks, run `hooks/install`, start
+  `enable` units, then run an MSO fixup so the input and switch appear.
 - Boot: recreate the symlinks if missing, run `hooks/boot`.
 - After a firmware update: re-register units and drop-ins, recreate the
   symlinks, run `hooks/post-update`.
 - Remove: run `hooks/uninstall`, stop and unregister units, remove drop-ins
-  and symlinks, remove packages no other addon ships, delete the directory.
-  The next fixup drops the input and switch.
+  and symlinks, purge the packages the addon installed unless another
+  installed addon ships them, delete the directory. The next fixup drops the
+  input and switch.
 
 Hooks receive `ADDON_ID`, `ADDON_DIR`, `ADDONS_DIR` and `OLYMPIA` in the
 environment.
