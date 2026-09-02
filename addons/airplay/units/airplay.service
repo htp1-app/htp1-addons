@@ -1,0 +1,57 @@
+[Unit]
+Description=AirPlay receiver (shairport-sync)
+# Runs continuously so the unit stays discoverable: a sender can only wake a
+# device it can see, and while this was started and stopped with its input,
+# AirPlay was not even advertising unless it was already selected. Idle
+# receivers do not hold default:I2S (disable_standby_mode is "never" and the
+# drain timeout is short), so they coexist; whichever is actually streaming
+# takes the device, and its session hook selects the matching input.
+# Requires, not just After. AirPlay 2 needs both the timing peer and Avahi, so
+# starting this unit pulls them up and stopping it releases them. Declaring the
+# dependency here keeps it out of the Node-RED service toggle, which then only
+# ever starts and stops THIS unit.
+#
+# The ordering matters more than it looks. avahi-daemon is socket-activated and
+# D-Bus activated, so stopping it while shairport-sync still holds a connection
+# does nothing at all -- the daemon is revived instantly and the stop looks like
+# it silently failed. systemd tears down the client first, which is the only
+# order that works.
+Requires=nqptp.service avahi-daemon.service
+After=nqptp.service avahi-daemon.service
+
+[Service]
+Type=simple
+User=root
+
+# Real-time scheduling. Without this every shairport-sync thread runs
+# SCHED_OTHER at priority 0, and on this PREEMPT_RT kernel the audio thread
+# loses the CPU often enough to underrun the I2S DMA -- audible as heavy
+# stuttering even though total CPU load is low. 45 sits below the kernel's
+# IRQ threads, which is where an audio producer belongs.
+CPUSchedulingPolicy=fifo
+CPUSchedulingPriority=45
+
+# Run on the isolated core -- writing cgroup.procs moves the whole process
+# (all threads, unlike the tasks file). The CPU SHIELD itself is raised by
+# airplay-session.sh when a session begins and dropped when it ends, not here:
+# now that the service runs continuously, holding the shield up permanently
+# would confine avController, Dirac and Node-RED to one core around the clock.
+ExecStart=/bin/bash -c 'NAME="$(tr -d "\\000-\\037" < /var/lib/olympia/unitname.txt 2>/dev/null)"; [ -z "$NAME" ] && NAME="HTP-1"; exec /var/lib/olympia/addons/airplay/bin/shairport-sync --configfile=/var/lib/olympia/addons/airplay/etc/shairport-sync.conf -a "$NAME"'
+ExecStartPost=/bin/bash -c 'echo $MAINPID > /sys/fs/cgroup/cpuset/user/cgroup.procs 2>/dev/null || true'
+
+# shairport-sync 4.3.7 aborts during Avahi/D-Bus teardown on the way out --
+# it logs "normal exit" and then D-Bus kills it on
+# _dbus_check_is_valid_utf8, leaving the unit in "failed" state. It is an
+# upstream shutdown bug, harmless to playback (the crash is after the audio
+# stops) and not caused by the service name, which is clean ASCII here.
+#
+# SIGINT is tried rather than SuccessExitStatus=SIGSEGV, because masking the
+# signal would also stop systemd noticing a genuine crash during playback and
+# suppress the Restart=on-failure that should follow it.
+KillSignal=SIGINT
+
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

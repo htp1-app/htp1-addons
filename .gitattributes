@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.deb binary
+*.png binary
+addons/airplay/bin/shairport-sync binary
+addons/airplay/bin/nqptp binary
+addons/spotify/bin/librespot binary

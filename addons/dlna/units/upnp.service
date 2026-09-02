@@ -1,0 +1,61 @@
+[Unit]
+Description=UPnP/DLNA renderer (gmediarender)
+# Runs continuously so the unit stays discoverable -- see airplay.service for
+# the full reasoning. Idle receivers do not hold default:I2S, so they coexist,
+# and the session hook selects the matching input.
+#
+# This is the Android answer. Google Cast cannot be implemented: a Cast
+# receiver must present a per-device certificate chain signed by Google's Cast
+# CA, which is unobtainable, and without it senders see the device and then
+# fail at authentication. UPnP/DLNA is open, and BubbleUPnP, Hi-Fi Cast, VLC
+# and Windows "Cast to device" all push to it.
+After=network-online.target
+Wants=network-online.target
+
+# Pull the wake-on-play watcher up with the renderer. upnp-watch declares
+# Requires= and PartOf= this unit, which makes it FOLLOW upnp down but does not
+# start it -- so without this the DLNA switch left the watcher stopped and
+# playback never woke the processor or selected the input.
+Wants=upnp-watch.service
+
+[Service]
+Type=simple
+User=root
+
+# Same real-time treatment as the other receivers: without it, audio threads
+# run SCHED_OTHER at priority 0 and lose the CPU often enough to underrun the
+# I2S DMA on this PREEMPT_RT kernel.
+CPUSchedulingPolicy=fifo
+CPUSchedulingPriority=45
+ExecStartPost=/bin/bash -c 'echo $MAINPID > /sys/fs/cgroup/cpuset/user/cgroup.procs 2>/dev/null || true'
+
+# -I is not optional: gmediarender's own help says 0.0.0.0 will not work, so
+#   the live address has to be resolved at start rather than baked in.
+# --gstout-audiosink alsasink + audiodevice default:I2S puts it on the shared
+#   sink the DSP reads, the same one Roon, AirPlay, Spotify, Bluetooth and USB
+#   audio use.
+# --gstout-initial-volume-db 0.0 keeps GStreamer out of the signal path: the
+#   HTP-1's own volume does the work, as with the other receivers.
+# --uuid must be stable PER UNIT, not a fixed literal: every HTP-1 would
+#   otherwise advertise the same UUID and control points on a shared LAN would
+#   conflate them. Derived from the unit serial, falling back to the eth0 MAC,
+#   so it survives restarts but differs between boxes.
+ExecStart=/bin/bash -c 'NAME="$(tr -d "\\000-\\037" < /var/lib/olympia/unitname.txt 2>/dev/null)"; [ -z "$NAME" ] && NAME="HTP-1"; \
+  IP="$(ip -4 -o addr show eth0 | awk "{print \\$4}" | cut -d/ -f1 | head -1)"; \
+  [ -z "$IP" ] && IP="$(hostname -I | awk "{print \\$1}")"; \
+  SER="$(tr -cd "0-9A-Za-z" < /var/lib/olympia/olympia_sn.txt 2>/dev/null)"; \
+  [ -z "$SER" ] && SER="$(tr -d : < /sys/class/net/eth0/address 2>/dev/null)"; \
+  [ -z "$SER" ] && SER="unknown"; \
+  exec /usr/bin/gmediarender \
+    --friendly-name "$NAME" \
+    --uuid "htp1-$SER" \
+    -I "$IP" \
+    --gstout-audiosink alsasink \
+    --gstout-audiodevice default:I2S \
+    --gstout-initial-volume-db 0.0'
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,45 @@
+# Build shairport-sync for the HTP-1 (Allwinner A20, armv7l, Debian 9).
+#
+# The image matches the unit exactly -- Debian stretch, glibc 2.24, armhf --
+# so the binary links against the same symbol versions the device already has.
+# Building here rather than on the unit keeps the rootfs untouched, the same
+# promise mdns-svc and ui-background-svc make.
+#
+# Stretch is long EOL, so its packages live on archive.debian.org and the
+# release files are past Valid-Until; apt has to be told not to care.
+
+FROM --platform=linux/arm/v7 arm32v7/debian:stretch-slim
+
+RUN printf '%s\n' \
+      'deb http://archive.debian.org/debian stretch main' \
+      'deb http://archive.debian.org/debian-security stretch/updates main' \
+      > /etc/apt/sources.list \
+ && printf 'Acquire::Check-Valid-Until "false";\n' > /etc/apt/apt.conf.d/99no-check-valid-until
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      build-essential autoconf automake libtool pkg-config git ca-certificates \
+      libasound2-dev libpopt-dev libconfig-dev libssl-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+# 3.3.9 is the last of the 3.x line -- AirPlay 1 only. AirPlay 2 (4.x) needs
+# libplist, libsodium, libgcrypt and ffmpeg plus a separate nqptp daemon, which
+# is a great deal to carry on a dual-core A7 running stretch. Revisit once
+# AirPlay 1 is proven end to end.
+ARG SPS_VERSION=3.3.9
+RUN git clone --depth 1 --branch ${SPS_VERSION} \
+      https://github.com/mikebrady/shairport-sync.git /src
+
+WORKDIR /src
+
+# --with-tinysvcmdns: the unit has the avahi *client* libraries but no
+#   avahi-daemon, so shairport-sync has to advertise itself.
+# --with-ssl=openssl: libssl1.1 is already on the unit.
+# --with-alsa: output goes to the shared default:I2S device, the same sink
+#   Roon, USB gadget audio and bluealsa-aplay all write to.
+# No --with-systemd/--with-metadata: the unit supervises via tmux + a restart
+#   loop, and metadata is not needed for a first pass.
+RUN autoreconf -fi \
+ && ./configure --with-alsa --with-tinysvcmdns --with-ssl=openssl --with-pipe \
+ && make -j"$(nproc)"
+
+CMD ["bash"]

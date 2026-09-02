@@ -1,0 +1,32 @@
+{
+  "id": "dlna",
+  "version": "0.1.0",
+  "label": "DLNA",
+  "summary": "UPnP/DLNA renderer (gmediarender) with a wake-on-play watcher",
+  "requires": {
+    "firmware": ">=2.1.3",
+    "addons": [
+      "receiver-core"
+    ]
+  },
+  "units": {
+    "upnp.service": "link",
+    "upnp-watch.service": "link"
+  },
+  "service": {
+    "unit": "upnp.service",
+    "process": "gmediarender",
+    "defaultOn": true
+  },
+  "input": {
+    "code": "upnp",
+    "label": "DLNA",
+    "routesTo": "i2s",
+    "order": 217,
+    "formatDetectOption": "biased"
+  },
+  "ui": {
+    "switch": true,
+    "page": null
+  }
+}

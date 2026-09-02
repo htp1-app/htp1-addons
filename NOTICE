@@ -1,0 +1,25 @@
+htp1-addons is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+It carries third-party binaries and packages under their own licenses. Each
+was built or fetched as described in the addon's build/ directory or README.
+
+addons/airplay/bin/shairport-sync
+    shairport-sync 4.3.7, Mike Brady and contributors. MIT License, with
+    components under BSD-style licenses (see the project's LICENSES file).
+    Statically links libplist 2.3.0 (libimobiledevice), LGPL-2.1, and
+    libsodium, ISC. https://github.com/mikebrady/shairport-sync
+
+addons/airplay/bin/nqptp
+    nqptp, Mike Brady. GNU GPL v2. https://github.com/mikebrady/nqptp
+
+addons/airplay/debs/
+    avahi-daemon, libavahi-core7 0.6.32-2. GNU LGPL v2.1. Debian 9 packages.
+
+addons/spotify/bin/librespot
+    librespot 0.4.2, ALSA backend only. MIT License.
+    https://github.com/librespot-org/librespot
+
+addons/dlna/debs/
+    gmediarender 0.0.7 (gmrender-resurrect), GNU GPL v2, and the GStreamer 1.10
+    plugins and libraries it depends on, GNU LGPL v2 or later. Debian 9
+    packages. https://github.com/hzeller/gmrender-resurrect

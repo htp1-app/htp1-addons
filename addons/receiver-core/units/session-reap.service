@@ -1,0 +1,12 @@
+[Unit]
+Description=Reap expired streaming receiver sessions
+# One reap pass of the session arbiter. Reaping otherwise happens only when a
+# receiver event invokes the arbiter, so a receiver that crashed without its
+# "end" hook would pin the CPU shield -- and hold a stale owner -- until the
+# next event, possibly forever on a box left on another input. Driven by
+# session-reap.timer; see receiver-core/bin/session-arbiter.sh.
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/var/lib/olympia/addons/receiver-core/bin/session-arbiter.sh reap

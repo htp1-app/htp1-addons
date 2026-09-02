@@ -1,0 +1,60 @@
+[Unit]
+Description=Spotify Connect receiver (librespot)
+# Runs continuously so the unit stays discoverable in the Spotify picker; see
+# airplay.service for the reasoning. Idle receivers do not hold default:I2S,
+# so they coexist, and the session hook selects the matching input.
+After=network.target
+
+[Service]
+Type=simple
+User=root
+
+# Same real-time treatment as airplay.service. Without it, audio threads run
+# SCHED_OTHER at priority 0 and lose the CPU often enough to underrun the I2S
+# DMA on this PREEMPT_RT kernel. See that unit for the full reasoning.
+CPUSchedulingPolicy=fifo
+CPUSchedulingPriority=45
+ExecStartPost=/bin/bash -c 'echo $MAINPID > /sys/fs/cgroup/cpuset/user/cgroup.procs 2>/dev/null || true'
+
+# --volume-range 1 keeps softvol effectively out of the signal path: it still
+#   tracks and reports volume (so the app's slider works and --onevent fires),
+#   but its control spans a single dB, so attenuation is at most -1 dB at the
+#   very bottom and 0 dB everywhere useful. The level is set downstream on the
+#   MSO volume by spotify-event.sh -- the same idea as Roon's
+#   "volume": {"type": "mso"}.
+#
+#   Not 0: librespot rejects a zero range for the log curve --
+#   "Log(0.0) does not work with 0 dB range, using linear mapping instead" --
+#   and silently falls back to a linear mapping that may attenuate, which
+#   would stack on top of the MSO volume.
+#
+#   DO NOT go back to --volume-ctrl fixed. "fixed" tells Spotify the device has
+#   no volume control at all, so the app disables its slider AND stops sending
+#   changes; combined with --initial-volume 100 that produced exactly one
+#   volume event, at maximum, which the onevent script mapped straight to
+#   /cal/vph and left there with no way to turn it down from the phone.
+#
+# --initial-volume 20 is a safety floor. Connecting a Connect device applies
+#   its remembered volume, and that lands on the processor's real volume
+#   control, so the default must be quiet rather than loud.
+# --device-type avr: Spotify's device picker shows a receiver icon rather than
+#   a generic speaker. Unlike AirPlay's model string, this one is ours to set.
+# --cache: credentials and volume state; /var/lib/olympia is the unit's own
+#   writable state directory.
+ExecStart=/bin/bash -c 'NAME="$(tr -d "\\000-\\037" < /var/lib/olympia/unitname.txt 2>/dev/null)"; [ -z "$NAME" ] && NAME="HTP-1"; exec /var/lib/olympia/addons/spotify/bin/librespot \
+  --name "$NAME" \
+  --device-type avr \
+  --backend alsa \
+  --device default:I2S \
+  --bitrate 320 \
+  --volume-ctrl log \
+  --volume-range 1 \
+  --initial-volume 20 \
+  --cache /var/lib/olympia/addons/spotify/state \
+  --onevent /var/lib/olympia/addons/spotify/bin/spotify-event.sh'
+
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

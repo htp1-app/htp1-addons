@@ -1,0 +1,32 @@
+[Unit]
+Description=Not Quite PTP, the timing peer AirPlay 2 requires
+# Binds UDP 319/320 and disciplines the clock shairport-sync shares with the
+# sender. It runs continuously rather than being started with the input: it is
+# ~26 KB and idle when nothing is streaming, and AirPlay 2 senders expect the
+# timing peer to be reachable before a session opens.
+After=network.target
+
+# Only airplay.service requires this, so it follows AirPlay off as well as on.
+# Without StopWhenUnneeded it stays running after AirPlay is switched off --
+# harmless at ~26 KB, but a timing daemon for a disabled feature is exactly the
+# kind of thing the switches are meant to remove.
+StopWhenUnneeded=yes
+
+[Service]
+Type=simple
+User=root
+ExecStart=/var/lib/olympia/addons/airplay/bin/nqptp
+
+# Run on the isolated core, like the three receivers. nqptp was the one piece
+# of the AirPlay path left unpinned: it disciplines the clock shairport-sync
+# plays against, so leaving it free to float across both cores put the timing
+# reference on the unshielded core while the audio it times ran on the
+# isolated one. nqptp sets its own real-time priority, so only the cpuset is
+# needed here.
+ExecStartPost=/bin/bash -c 'echo $MAINPID > /sys/fs/cgroup/cpuset/user/cgroup.procs 2>/dev/null || true'
+
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

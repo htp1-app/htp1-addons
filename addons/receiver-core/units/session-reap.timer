@@ -1,0 +1,15 @@
+[Unit]
+Description=Periodic reap of expired streaming receiver sessions
+
+[Timer]
+# The lease is 90 s (LEASE_SECS); a 30 s cadence bounds how long a crashed
+# receiver can pin the CPU shield at ~2 minutes, without meaningful load: the
+# arbiter takes the lock, finds nothing expired and exits in milliseconds.
+# OnBootSec waits out the first lease period -- nothing can have expired
+# before then, and boot is busy enough already.
+OnBootSec=90
+OnUnitActiveSec=30
+AccuracySec=5
+
+[Install]
+WantedBy=timers.target

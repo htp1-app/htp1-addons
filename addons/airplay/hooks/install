@@ -1,0 +1,5 @@
+#!/bin/bash
+# avahi-daemon is pulled up by airplay.service (Requires=) and stops when unneeded;
+# it must not also be enabled at boot, or it runs while AirPlay is switched off.
+systemctl disable avahi-daemon.service avahi-daemon.socket >/dev/null 2>&1 || true
+exit 0

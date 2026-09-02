@@ -1,0 +1,31 @@
+{
+  "id": "spotify",
+  "version": "0.1.0",
+  "label": "Spotify",
+  "summary": "Spotify Connect receiver (librespot 0.4.2)",
+  "requires": {
+    "firmware": ">=2.1.3",
+    "addons": [
+      "receiver-core"
+    ]
+  },
+  "units": {
+    "spotify.service": "link"
+  },
+  "service": {
+    "unit": "spotify.service",
+    "process": "librespot",
+    "defaultOn": true
+  },
+  "input": {
+    "code": "spotify",
+    "label": "Spotify",
+    "routesTo": "i2s",
+    "order": 216,
+    "formatDetectOption": "biased"
+  },
+  "ui": {
+    "switch": true,
+    "page": null
+  }
+}
