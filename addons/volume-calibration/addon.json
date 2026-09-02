@@ -1,6 +1,6 @@
 {
   "id": "volume-calibration",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "label": "Volume Calibration",
   "summary": "Guided setup of Reference Output Voltage, headroom, Maximum Volume and Zero Point from your amplifier and measured demand",
   "requires": {

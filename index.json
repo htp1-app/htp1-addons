@@ -1,6 +1,6 @@
 {
   "name": "htp1-addons",
-  "updated": "2026-09-02T16:08:23Z",
+  "updated": "2026-09-02T16:13:45Z",
   "addons": [
     {
       "id": "airplay",
@@ -62,16 +62,16 @@
     },
     {
       "id": "volume-calibration",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "label": "Volume Calibration",
       "summary": "Guided setup of Reference Output Voltage, headroom, Maximum Volume and Zero Point from your amplifier and measured demand",
       "requires": {
         "firmware": ">=2.1.3",
         "addons": []
       },
-      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.1.0/htp1-addon-volume-calibration-0.1.0.tar.gz",
-      "sha256": "f1fcb220f92c4b2171e005cce5b5e3a0a9f8d0770b56ff573fe8d87e8d34e667",
-      "size": 137390
+      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.1.0/htp1-addon-volume-calibration-0.1.1.tar.gz",
+      "sha256": "6a5ebff9f99d0e81287862b7200af00cfac4afefcb2f576f33b6d5790f5497ac",
+      "size": 137396
     }
   ]
 }
