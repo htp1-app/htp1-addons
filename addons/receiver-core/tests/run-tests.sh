@@ -101,7 +101,7 @@ PID=$(start_fake_silent gmediarender)
 sleep 0.3
 expire upnp
 "$ARB" owner >/dev/null            # any invocation reaps; production also has
-                                   # session-reap.timer driving "reap" directly
+                                   # session-reaper.sh driving "reap" directly
 ck "silent upnp is reaped"             ""        "$(ls /dev/shm/htp1-sessions)"
 ck "owner cleared by reap"             ""        "$("$ARB" owner)"
 ck "shield lowered by reap"            "on off"  "$(tr '\n' ' ' < $SHIELDLOG | sed 's/ $//')"
@@ -205,7 +205,7 @@ sleep 0.3
 setinput airplay                   # box still sitting on the dead owner
 : > "$SENDLOG"
 expire airplay                     # airplay died without sending "end"
-"$ARB" reap                        # the timer's verb
+"$ARB" reap                        # the reaper's verb
 ck "ownership handed to the survivor"  "spotify" "$(cat /dev/shm/htp1-session-owner)"
 ck "input followed to the survivor"    '[{"op":"replace","path":"/input","value":"spotify"}]' "$(cat $SENDLOG)"
 ck "shield still up for the survivor"  "on"      "$(tr '\n' ' ' < $SHIELDLOG | sed 's/ $//')"

@@ -7,7 +7,7 @@ firmware does with them are in [docs/format.md](docs/format.md).
 
 | Addon | What it is | Needs |
 |---|---|---|
-| [`receiver-core`](addons/receiver-core) | Session arbiter, reap timer and shared volume mapping for the network receivers | |
+| [`receiver-core`](addons/receiver-core) | Session arbiter, session reaper and shared volume mapping for the network receivers | |
 | [`airplay`](addons/airplay) | AirPlay 2 receiver: shairport-sync 4.3.7 with nqptp and avahi-daemon | `receiver-core` |
 | [`spotify`](addons/spotify) | Spotify Connect receiver: librespot 0.4.2 | `receiver-core` |
 | [`dlna`](addons/dlna) | UPnP/DLNA renderer: gmediarender with a wake-on-play watcher | `receiver-core` |

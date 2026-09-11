@@ -22,7 +22,7 @@
 #   extended; one that is not is reaped. So a crashed receiver is still cleaned
 #   up, and a long stream is not. Expiry used to be checked only when some
 #   receiver event happened to invoke this script, so a crashed receiver could
-#   sit unreaped for as long as the box stayed quiet; receiver-core/units/session-reap.timer
+#   sit unreaped for as long as the box stayed quiet; receiver-core/units/session-reap.service
 #   now runs "reap" every 30 seconds to bound that.
 #
 #   REF-COUNTED SHIELD. Raised on the first live session, dropped only when
@@ -55,7 +55,7 @@
 #   session-arbiter.sh begin <name>       # airplay | spotify | upnp
 #   session-arbiter.sh end   <name>
 #   session-arbiter.sh renew <name>       # refresh the lease (optional)
-#   session-arbiter.sh reap               # expire dead sessions (the timer's verb)
+#   session-arbiter.sh reap               # expire dead sessions (the reaper's verb)
 #   session-arbiter.sh owner              # print the current owner, if any
 #   session-arbiter.sh pending            # print the owner awaiting its switch
 #
@@ -274,11 +274,11 @@ case "$ACTION" in
     ;;
 
   reap)
-    # The timer's verb (receiver-core/units/session-reap.timer). Reaping used to happen
-    # only when some receiver event invoked this script, so a receiver that
-    # crashed without its "end" hook pinned the CPU shield -- and held a stale
-    # owner -- until the next event, possibly forever on a box left on HDMI.
-    # The timer gives expiry an upper bound.
+    # The reaper's verb (receiver-core/bin/session-reaper.sh, every 30 s). Reaping
+    # used to happen only when some receiver event invoked this script, so a
+    # receiver that crashed without its "end" hook pinned the CPU shield -- and
+    # held a stale owner -- until the next event, possibly forever on a box left
+    # on HDMI. The reaper gives expiry an upper bound.
     reap
     ;;
 esac

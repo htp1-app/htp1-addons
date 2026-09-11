@@ -1,12 +1,20 @@
 [Unit]
 Description=Reap expired streaming receiver sessions
-# One reap pass of the session arbiter. Reaping otherwise happens only when a
-# receiver event invokes the arbiter, so a receiver that crashed without its
-# "end" hook would pin the CPU shield -- and hold a stale owner -- until the
-# next event, possibly forever on a box left on another input. Driven by
-# session-reap.timer; see receiver-core/bin/session-arbiter.sh.
+# Reaping otherwise happens only when a receiver event invokes the arbiter, so
+# a receiver that crashed without its "end" hook would pin the CPU shield --
+# and hold a stale owner -- until the next event, possibly forever on a box
+# left on another input. This used to be a 30 s systemd timer firing a oneshot,
+# but PID 1 logs three lines for every firing, 8,000 lines a day into
+# daemon.log and syslog on a 50 MB tmpfs. One long-running loop logs once.
+# See receiver-core/bin/session-reaper.sh.
+After=network.target
 
 [Service]
-Type=oneshot
+Type=simple
 User=root
-ExecStart=/var/lib/olympia/addons/receiver-core/bin/session-arbiter.sh reap
+ExecStart=/var/lib/olympia/addons/receiver-core/bin/session-reaper.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

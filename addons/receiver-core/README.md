@@ -1,6 +1,6 @@
 # receiver-core
 
-What the network receivers share: the session arbiter, the timer that reaps
+What the network receivers share: the session arbiter, the service that reaps
 dead sessions, and the volume mapping their hooks source. AirPlay, Spotify
 and DLNA require it.
 
@@ -8,7 +8,7 @@ and DLNA require it.
 |---|---|
 | `bin/session-arbiter.sh` | `begin`, `end`, `renew`, `reap`, `owner`, `pending`. Called by each receiver's session hook. |
 | `bin/volume-common.sh` | Sourced by the volume hooks: the active-receiver guard and the sender-range to MSO-volume mapping. |
-| `units/session-reap.timer` | Runs `session-arbiter.sh reap` every 30 s. |
+| `bin/session-reaper.sh` | Runs `session-arbiter.sh reap` every 30 s, as `units/session-reap.service`. A systemd timer did this before, but PID 1 logs three lines per firing. |
 
 ## The arbiter
 

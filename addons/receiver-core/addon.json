@@ -1,14 +1,13 @@
 {
   "id": "receiver-core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "label": "Receiver core",
-  "summary": "Session arbiter, reap timer and shared volume mapping for the network receivers",
+  "summary": "Session arbiter, session reaper and shared volume mapping for the network receivers",
   "requires": {
     "firmware": ">=2.1.3",
     "addons": []
   },
   "units": {
-    "session-reap.service": "link",
-    "session-reap.timer": "enable"
+    "session-reap.service": "enable"
   }
 }
