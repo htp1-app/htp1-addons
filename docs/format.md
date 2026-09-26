@@ -153,17 +153,29 @@ The unit exposes the catalog and the actions to the web UI:
   `state/` carried over; if the new one fails to activate, the old one is put
   back. Each step is journalled, so an interruption is finished or undone the
   next time `addonctl` runs, at the latest at boot.
-- Boot: finish or undo an interrupted change, recreate the symlinks if
-  missing, run `hooks/boot`.
+- Boot: before the firmware's services start, finish or undo an interrupted
+  change and recreate the symlinks if missing, within three minutes. Then,
+  alongside the firmware's startup rather than before it, run `hooks/boot`;
+  nothing the firmware starts waits for it.
 - After a firmware update: re-register units and drop-ins, recreate the
-  symlinks, run `hooks/post-update`.
+  symlinks, run `hooks/post-update`. If the firmware now provides one of the
+  addon's unit names, the firmware's unit wins: the addon's registration
+  comes out and the addon is left alone, with the reason on the Addons page,
+  until an update or reinstall clears the conflict.
+- Flows are checked before they are linked, at install, boot and after a
+  firmware update: every node type must be one the unit's Node-RED has,
+  every `subflow:` must be defined, and no node id may be used by another
+  flow file (ids are one namespace). Node-RED starts no flow at all when one
+  type is missing, so failing flows refuse the install, or later stay
+  unlinked, with the reason on the Addons page.
 - Remove: stop the units (or refuse), run `hooks/uninstall`, unregister the
   units, remove drop-ins and symlinks, purge the packages the addon installed
   unless another installed addon's record lists them, delete the directory.
   The next fixup drops the input and switch.
 
 Hooks receive `ADDON_ID`, `ADDON_DIR`, `ADDONS_DIR` and `OLYMPIA` in the
-environment. Under `node_in_ram` the links are made in the RAM copy of the
+environment. Each hook gets two minutes; after that it is killed with its
+whole process group, which fails an `install` or `pre-upgrade` hook. Under `node_in_ram` the links are made in the RAM copy of the
 Node-RED tree as well as the firmware's.
 
 Versions follow SemVer: `major.minor.patch`, a prerelease such as
@@ -177,5 +189,7 @@ says.
 - Binaries are armv7 against Debian 9 (glibc 2.24). `build/` holds the
   Docker recipe that produced each one.
 - `/var/log` is a 50 MB log2ram partition. Log to the journal or rotate.
-- All unit control is `--no-block`; a unit that fails to start must not
-  stall the firmware.
+- Unit starts and restarts are `--no-block`; a unit that fails to start must
+  not stall the firmware. The one wait is a source's stop when a stock
+  player (USB, Bluetooth, Roon) takes the I2S device next, bounded at five
+  seconds, so stop promptly on the unit's stop signal.
