@@ -1,77 +1,48 @@
 {
   "name": "htp1-addons",
-  "updated": "2026-09-02T16:13:45Z",
+  "updated": "2026-09-26T20:59:20Z",
   "addons": [
     {
       "id": "airplay",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "label": "AirPlay",
       "summary": "AirPlay 2 receiver (shairport-sync 4.3.7 with nqptp)",
       "requires": {
-        "firmware": ">=2.1.3",
-        "addons": [
-          "receiver-core"
+        "capabilities": [
+          "source/1"
         ]
       },
-      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.1.0/htp1-addon-airplay-0.1.0.tar.gz",
-      "sha256": "43e59c08ba96f06d11702a00fcafe5e423851b766fc3cb3bee4d70ed74cd25fc",
-      "size": 520919
+      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.2.0/htp1-addon-airplay-0.2.0.tar.gz",
+      "sha256": "0a314ebe160820fd584f5041c225df2f2817d8c4a48aa25b6c858340d3b7c79d",
+      "size": 519722
     },
     {
       "id": "dlna",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "label": "DLNA",
-      "summary": "UPnP/DLNA renderer (gmediarender) with a wake-on-play watcher",
+      "summary": "UPnP/DLNA renderer (gmediarender)",
       "requires": {
-        "firmware": ">=2.1.3",
-        "addons": [
-          "receiver-core"
+        "capabilities": [
+          "source/1"
         ]
       },
-      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.1.0/htp1-addon-dlna-0.1.0.tar.gz",
-      "sha256": "836a680c99e7089762eeb374bc4435996597715e88a74a9e85f957d506aab94a",
-      "size": 6405367
-    },
-    {
-      "id": "receiver-core",
-      "version": "0.1.0",
-      "label": "Receiver core",
-      "summary": "Session arbiter, reap timer and shared volume mapping for the network receivers",
-      "requires": {
-        "firmware": ">=2.1.3",
-        "addons": []
-      },
-      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.1.0/htp1-addon-receiver-core-0.1.0.tar.gz",
-      "sha256": "43525e9e570836821849abc559281b83aae4586b08f7c6e17b57ff258216dfd4",
-      "size": 8152
+      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.2.0/htp1-addon-dlna-0.2.0.tar.gz",
+      "sha256": "9d3fcaf1aeddbfdf0510fd5c9a0def129fb73fee0f8b9221b4ce4505f81a0b9d",
+      "size": 6404579
     },
     {
       "id": "spotify",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "label": "Spotify",
       "summary": "Spotify Connect receiver (librespot 0.4.2)",
       "requires": {
-        "firmware": ">=2.1.3",
-        "addons": [
-          "receiver-core"
+        "capabilities": [
+          "source/1"
         ]
       },
-      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.1.0/htp1-addon-spotify-0.1.0.tar.gz",
-      "sha256": "8790ff68a1768d598ddd80af7722a472f7ffd36354fecc9cb8ece68ae75493b8",
-      "size": 2245095
-    },
-    {
-      "id": "volume-calibration",
-      "version": "0.1.1",
-      "label": "Volume Calibration",
-      "summary": "Guided setup of Reference Output Voltage, headroom, Maximum Volume and Zero Point from your amplifier and measured demand",
-      "requires": {
-        "firmware": ">=2.1.3",
-        "addons": []
-      },
-      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.1.0/htp1-addon-volume-calibration-0.1.1.tar.gz",
-      "sha256": "6a5ebff9f99d0e81287862b7200af00cfac4afefcb2f576f33b6d5790f5497ac",
-      "size": 137396
+      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.2.0/htp1-addon-spotify-0.2.0.tar.gz",
+      "sha256": "6f7e173f5083313bb1fd1f92351f5d9deaf9c36d5aef82cc3c2f6202132d6557",
+      "size": 2244022
     }
   ]
 }
