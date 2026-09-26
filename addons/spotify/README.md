@@ -15,7 +15,7 @@ own zeroconf and advertises `_spotify-connect._tcp` itself.
 | | |
 |---|---|
 | `bin/librespot` | 6 MB stripped, librespot 0.4.2, ALSA backend only |
-| `bin/spotify-event.sh` | `--onevent` hook: session begin and end through the arbiter, and the app's volume onto the MSO volume |
+| `bin/spotify-event.sh` | `--onevent` hook: selects Spotify before each device open, and passes the app's volume to the unit |
 | `units/spotify.service` | systemd unit |
 | `build/Dockerfile` | reproduces the binary |
 
@@ -52,17 +52,22 @@ MFi certification: here it is simply ours to set.
 `--volume-ctrl log --volume-range 1` keeps librespot's own attenuation to at
 most 1 dB while still reporting the app's slider, so the stream reaches the
 DSP essentially untouched and the HTP-1's own volume does the work.
-`spotify-event.sh` maps the slider onto the MSO volume through the same
-60 dB window as `airplay/bin/airplay-volume.sh`. `--initial-volume 20` is the
-safety floor a Connect device applies when it is selected. The reasoning for
-each option is in `units/spotify.service`.
+`spotify-event.sh` passes the slider to the unit as a fraction, and the unit
+moves its own volume by each change, as for AirPlay; starting playback does
+not change the level. The reasoning for each option is in
+`units/spotify.service`.
 
 ## Input wiring
 
 The manifest registers `spotify` as an input that routes to `i2s`. The
-service runs continuously so the unit stays in the Spotify picker; the
-`playing` event selects the input through the arbiter, and the front panel and
-web UI name it "Spotify" from its label.
+service runs continuously so the unit stays in the Spotify picker.
+`--emit-sink-events` makes librespot run the event hook, and wait for it, just
+before it opens the device; the hook calls `addon-source start spotify`, so
+the unit selects Spotify, waking first if it has to, and the device is free
+when librespot opens it. Selecting another input, or standby, restarts the
+service with SIGINT, the one signal on which librespot tells Spotify it is
+leaving; the app stops playback. The front panel and web UI name the input
+"Spotify" from its label.
 
 ## Verified
 

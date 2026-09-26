@@ -1,12 +1,11 @@
 {
   "id": "airplay",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "label": "AirPlay",
   "summary": "AirPlay 2 receiver (shairport-sync 4.3.7 with nqptp)",
   "requires": {
-    "firmware": ">=2.1.3",
-    "addons": [
-      "receiver-core"
+    "capabilities": [
+      "source/1"
     ]
   },
   "units": {
@@ -15,7 +14,6 @@
   },
   "service": {
     "unit": "airplay.service",
-    "process": "shairport-sync",
     "defaultOn": true
   },
   "input": {
@@ -23,7 +21,9 @@
     "label": "AirPlay",
     "routesTo": "i2s",
     "order": 215,
-    "formatDetectOption": "biased"
+    "formatDetectOption": "biased",
+    "release": "restart",
+    "shield": true
   },
   "ui": {
     "switch": true,

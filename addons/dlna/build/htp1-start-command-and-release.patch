@@ -1,0 +1,58 @@
+--- a/src/output_gstreamer.c	2026-09-26 16:27:08.643003200 -0400
++++ b/src/output_gstreamer.c	2026-09-26 16:27:23.423759700 -0400
+@@ -147,6 +147,7 @@
+ static GstElement *player_ = NULL;
+ static char *gsuri_ = NULL;         // locally strdup()ed
+ static char *gs_next_uri_ = NULL;   // locally strdup()ed
++static gchar *start_command = NULL; // --gstout-start-command
+ static struct SongMetaData song_meta_;
+ 
+ static output_transition_cb_t play_trans_callback_ = NULL;
+@@ -180,9 +181,20 @@
+ 	SongMetaData_clear(&song_meta_);
+ }
+ 
++// Runs --gstout-start-command and waits for it. Called before playback
++// opens the audio device, so the command can make sure the device is free.
++static void run_start_command(void) {
++	if (start_command == NULL || *start_command == '\0') return;
++	int rc = system(start_command);
++	if (rc != 0) {
++		Log_info("gstreamer", "start command exited with %d", rc);
++	}
++}
++
+ static int output_gstreamer_play(output_transition_cb_t callback) {
+ 	play_trans_callback_ = callback;
+ 	if (get_current_player_state() != GST_STATE_PAUSED) {
++		run_start_command();
+ 		if (gst_element_set_state(player_, GST_STATE_READY) ==
+ 		    GST_STATE_CHANGE_FAILURE) {
+ 			Log_error("gstreamer", "setting play state failed (1)");
+@@ -310,8 +322,13 @@
+ 			if (play_trans_callback_) {
+ 				play_trans_callback_(PLAY_STARTED_NEXT_STREAM);
+ 			}
+-		} else if (play_trans_callback_) {
+-			play_trans_callback_(PLAY_STOPPED);
++		} else {
++			// Release the audio device, as a stop does; the
++			// pipeline otherwise keeps it until the next track.
++			gst_element_set_state(player_, GST_STATE_READY);
++			if (play_trans_callback_) {
++				play_trans_callback_(PLAY_STOPPED);
++			}
+ 		}
+ 		break;
+ 
+@@ -397,6 +414,10 @@
+         { "gstout-initial-volume-db", 0, 0, G_OPTION_ARG_DOUBLE, &initial_db,
+           "GStreamer inital volume in decibel (e.g. 0.0 = max; -6 = 1/2 max) ",
+ 	  NULL },
++        { "gstout-start-command", 0, 0, G_OPTION_ARG_STRING, &start_command,
++          "Shell command run, and waited for, before playback opens the "
++	  "audio device",
++	  NULL },
+         { NULL }
+ };
+ 

@@ -2,7 +2,7 @@
 Description=UPnP/DLNA renderer (gmediarender)
 # Runs continuously so the unit stays discoverable -- see airplay.service for
 # the full reasoning. Idle receivers do not hold default:I2S, so they coexist,
-# and the session hook selects the matching input.
+# and the start command selects DLNA before playback opens the device.
 #
 # This is the Android answer. Google Cast cannot be implemented: a Cast
 # receiver must present a per-device certificate chain signed by Google's Cast
@@ -11,12 +11,6 @@ Description=UPnP/DLNA renderer (gmediarender)
 # and Windows "Cast to device" all push to it.
 After=network-online.target
 Wants=network-online.target
-
-# Pull the wake-on-play watcher up with the renderer. upnp-watch declares
-# Requires= and PartOf= this unit, which makes it FOLLOW upnp down but does not
-# start it -- so without this the DLNA switch left the watcher stopped and
-# playback never woke the processor or selected the input.
-Wants=upnp-watch.service
 
 [Service]
 Type=simple
@@ -40,6 +34,9 @@ ExecStartPost=/bin/bash -c 'echo $MAINPID > /sys/fs/cgroup/cpuset/user/cgroup.pr
 #   otherwise advertise the same UUID and control points on a shared LAN would
 #   conflate them. Derived from the unit serial, falling back to the eth0 MAC,
 #   so it survives restarts but differs between boxes.
+# --gstout-start-command (this package's patch, see build/) runs just before
+#   playback opens the device and returns once the unit has selected DLNA and
+#   the device is free.
 ExecStart=/bin/bash -c 'NAME="$(tr -d "\\000-\\037" < /var/lib/olympia/unitname.txt 2>/dev/null)"; [ -z "$NAME" ] && NAME="HTP-1"; \
   IP="$(ip -4 -o addr show eth0 | awk "{print \\$4}" | cut -d/ -f1 | head -1)"; \
   [ -z "$IP" ] && IP="$(hostname -I | awk "{print \\$1}")"; \
@@ -52,7 +49,8 @@ ExecStart=/bin/bash -c 'NAME="$(tr -d "\\000-\\037" < /var/lib/olympia/unitname.
     -I "$IP" \
     --gstout-audiosink alsasink \
     --gstout-audiodevice default:I2S \
-    --gstout-initial-volume-db 0.0'
+    --gstout-initial-volume-db 0.0 \
+    --gstout-start-command "/opt/olympia/addon-source start dlna"'
 
 Restart=on-failure
 RestartSec=5

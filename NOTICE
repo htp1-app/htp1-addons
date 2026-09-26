@@ -20,6 +20,9 @@ addons/spotify/bin/librespot
     https://github.com/librespot-org/librespot
 
 addons/dlna/debs/
-    gmediarender 0.0.7 (gmrender-resurrect), GNU GPL v2, and the GStreamer 1.10
-    plugins and libraries it depends on, GNU LGPL v2 or later. Debian 9
-    packages. https://github.com/hzeller/gmrender-resurrect
+    gmediarender 0.0.7 (gmrender-resurrect), GNU GPL v2, built from Debian 9's
+    source package 0.0.7~git20160329+repack-1 with the patch in
+    addons/dlna/build/, which with that recipe is its corresponding source.
+    https://github.com/hzeller/gmrender-resurrect
+    The GStreamer 1.10 plugins and libraries it depends on, GNU LGPL v2 or
+    later. Debian 9 packages.

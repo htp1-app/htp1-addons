@@ -2,7 +2,7 @@
 Description=Spotify Connect receiver (librespot)
 # Runs continuously so the unit stays discoverable in the Spotify picker; see
 # airplay.service for the reasoning. Idle receivers do not hold default:I2S,
-# so they coexist, and the session hook selects the matching input.
+# so they coexist; spotify-event.sh has the unit select Spotify before each open.
 After=network.target
 
 [Service]
@@ -19,8 +19,8 @@ ExecStartPost=/bin/bash -c 'echo $MAINPID > /sys/fs/cgroup/cpuset/user/cgroup.pr
 # --volume-range 1 keeps softvol effectively out of the signal path: it still
 #   tracks and reports volume (so the app's slider works and --onevent fires),
 #   but its control spans a single dB, so attenuation is at most -1 dB at the
-#   very bottom and 0 dB everywhere useful. The level is set downstream on the
-#   MSO volume by spotify-event.sh -- the same idea as Roon's
+#   very bottom and 0 dB everywhere useful. spotify-event.sh passes the volume
+#   to the unit, which sets its own -- the same idea as Roon's
 #   "volume": {"type": "mso"}.
 #
 #   Not 0: librespot rejects a zero range for the log curve --
@@ -31,16 +31,17 @@ ExecStartPost=/bin/bash -c 'echo $MAINPID > /sys/fs/cgroup/cpuset/user/cgroup.pr
 #   DO NOT go back to --volume-ctrl fixed. "fixed" tells Spotify the device has
 #   no volume control at all, so the app disables its slider AND stops sending
 #   changes; combined with --initial-volume 100 that produced exactly one
-#   volume event, at maximum, which the onevent script mapped straight to
-#   /cal/vph and left there with no way to turn it down from the phone.
+#   volume event, at maximum, and no way to turn it down from the phone.
 #
-# --initial-volume 20 is a safety floor. Connecting a Connect device applies
-#   its remembered volume, and that lands on the processor's real volume
-#   control, so the default must be quiet rather than loud.
+# --initial-volume 20: where the app's slider starts on a new connection. The
+#   unit moves its volume only by changes of the slider, so this sets no level.
 # --device-type avr: Spotify's device picker shows a receiver icon rather than
 #   a generic speaker. Unlike AirPlay's model string, this one is ours to set.
 # --cache: credentials and volume state; /var/lib/olympia is the unit's own
 #   writable state directory.
+# --emit-sink-events: librespot runs the onevent script and waits for it just
+#   before it opens the device, which is when the unit selects Spotify and
+#   frees the device. Without it a busy device makes librespot exit.
 ExecStart=/bin/bash -c 'NAME="$(tr -d "\\000-\\037" < /var/lib/olympia/unitname.txt 2>/dev/null)"; [ -z "$NAME" ] && NAME="HTP-1"; exec /var/lib/olympia/addons/spotify/bin/librespot \
   --name "$NAME" \
   --device-type avr \
@@ -51,8 +52,12 @@ ExecStart=/bin/bash -c 'NAME="$(tr -d "\\000-\\037" < /var/lib/olympia/unitname.
   --volume-range 1 \
   --initial-volume 20 \
   --cache /var/lib/olympia/addons/spotify/state \
-  --onevent /var/lib/olympia/addons/spotify/bin/spotify-event.sh'
+  --onevent /var/lib/olympia/addons/spotify/bin/spotify-event.sh \
+  --emit-sink-events'
 
+# SIGINT is the only signal on which librespot tells Spotify it is leaving; the
+# unit restarts this service to end a session when another input takes over.
+KillSignal=SIGINT
 Restart=on-failure
 RestartSec=2
 

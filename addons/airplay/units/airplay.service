@@ -32,10 +32,11 @@ CPUSchedulingPolicy=fifo
 CPUSchedulingPriority=45
 
 # Run on the isolated core -- writing cgroup.procs moves the whole process
-# (all threads, unlike the tasks file). The CPU SHIELD itself is raised by
-# airplay-session.sh when a session begins and dropped when it ends, not here:
-# now that the service runs continuously, holding the shield up permanently
-# would confine avController, Dirac and Node-RED to one core around the clock.
+# (all threads, unlike the tasks file). The CPU SHIELD itself is raised by the
+# firmware while AirPlay is the selected input and the unit is on (the
+# manifest's input.shield), not here: the service runs continuously, and
+# holding the shield up permanently would confine avController, Dirac and
+# Node-RED to one core around the clock.
 ExecStart=/bin/bash -c 'NAME="$(tr -d "\\000-\\037" < /var/lib/olympia/unitname.txt 2>/dev/null)"; [ -z "$NAME" ] && NAME="HTP-1"; exec /var/lib/olympia/addons/airplay/bin/shairport-sync --configfile=/var/lib/olympia/addons/airplay/etc/shairport-sync.conf -a "$NAME"'
 ExecStartPost=/bin/bash -c 'echo $MAINPID > /sys/fs/cgroup/cpuset/user/cgroup.procs 2>/dev/null || true'
 

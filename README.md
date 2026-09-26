@@ -7,17 +7,19 @@ firmware does with them are in [docs/format.md](docs/format.md).
 
 | Addon | What it is | Needs |
 |---|---|---|
-| [`receiver-core`](addons/receiver-core) | Session arbiter, reap timer and shared volume mapping for the network receivers | |
-| [`airplay`](addons/airplay) | AirPlay 2 receiver: shairport-sync 4.3.7 with nqptp and avahi-daemon | `receiver-core` |
-| [`spotify`](addons/spotify) | Spotify Connect receiver: librespot 0.4.2 | `receiver-core` |
-| [`dlna`](addons/dlna) | UPnP/DLNA renderer: gmediarender with a wake-on-play watcher | `receiver-core` |
+| [`airplay`](addons/airplay) | AirPlay 2 receiver: shairport-sync 4.3.7 with nqptp and avahi-daemon | `source/1` |
+| [`spotify`](addons/spotify) | Spotify Connect receiver: librespot 0.4.2 | `source/1` |
+| [`dlna`](addons/dlna) | UPnP/DLNA renderer: gmediarender, patched to report playback starts | `source/1` |
 | [`volume-calibration`](addons/volume-calibration) | The Volume Calibration wizard, as a page opened from the Addons page | |
 
 The three receivers play into `default:I2S`, the sink Roon, USB audio and
 Bluetooth already use, so their audio gets Dirac, bass management and the
 processor's volume like any other input. They run continuously so senders can
-see them, release the device when idle, and wake the processor and select
-their input when a sender starts playing. One plays at a time.
+see them and hold the device only while playing. Starting playback on one
+takes the unit over: it wakes if it has to, selects that input, and the
+receiver that was playing is restarted, which ends its sender's session.
+Each is a thin adapter onto the firmware's audio source interface
+(`source/1`, see [docs/format.md](docs/format.md)).
 
 ## Install
 
@@ -27,7 +29,7 @@ repositories; those added are kept. Each repository is listed with what it
 offers, with Install, Update and Remove per addon, a switch for anything that
 runs as a service, and its own Refresh. The unit downloads the package from the
 release listed in [index.json](index.json), checks its SHA-256, and installs
-it; dependencies such as `receiver-core` are installed first. The repository
+it, with any addons it depends on first. The repository
 field on that page takes any GitHub repository URL with an `index.json` on
 its main branch, or a direct URL to an index.
 
@@ -70,19 +72,18 @@ unit, so the results link against what is already there.
 ```
 docker build --platform linux/arm/v7 -t sps-build addons/airplay/build
 docker build --platform linux/amd64  -t librespot-build addons/spotify/build
+docker build --platform linux/amd64  -t gmediarender-build addons/dlna/build
 ```
 
-`gmediarender` and its GStreamer plugins are stock Debian 9 packages, carried
-as exact `.deb` files because the unit's apt sources are gone and updates
-cannot assume a network.
+The GStreamer plugins DLNA needs are stock Debian 9 packages, carried as
+exact `.deb` files because the unit's apt sources are gone and updates cannot
+assume a network. `gmediarender` is Debian's own package rebuilt with one
+patch by `addons/dlna/build/`, and replaces it in `debs/`.
 
 ## Tests
 
-The session arbiter runs against real processes in a container:
-
-```
-addons/receiver-core/tests/run.sh
-```
+The firmware side of the receivers (selection, wake, volume, release) is
+tested in the firmware repository with `tests/addons/run.sh`.
 
 ## Licensing
 

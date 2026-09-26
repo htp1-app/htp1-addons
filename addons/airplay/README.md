@@ -18,8 +18,7 @@ route to AirPlay 2 went through it and the dependency notes still apply.
 | `bin/shairport-sync` | 514 KB stripped, **shairport-sync 4.3.7 AirPlay 2** |
 | `bin/nqptp` | 26 KB; the PTP timing peer AirPlay 2 requires |
 | `etc/shairport-sync.conf` | config |
-| `bin/airplay-session.sh` | session hook: calls the arbiter's `begin` and `end` |
-| `bin/airplay-volume.sh` | maps the sender's volume onto the MSO volume |
+| `bin/airplay-volume.sh` | passes the sender's volume to the unit, which moves its own by each change |
 | `bin/run-foreground.sh` | runs the receiver by hand for debugging, with the service stopped |
 | `units/airplay.service`, `units/nqptp.service` | systemd units |
 | `units/avahi-daemon.service.d/htp1.conf` | lets avahi stop when AirPlay is off |
@@ -70,10 +69,14 @@ stock rootfs has the avahi *client* libraries but no daemon, which is why
 The manifest registers `airplay` as an input that routes to `i2s`. Selecting
 it sends the console verb `i2s` to avController, the same generic command
 `roon`, `b` and `usb` use; `ALSAI2S` tracks the sample rate on its own, so
-AirPlay's fixed 44.1 kHz is handled. The service is not started or stopped on
-input change: it runs continuously so senders can see it, and its session
-hook selects the input when playback starts. The front panel and web UI name
-the input from its label, so both read "AirPlay".
+AirPlay's fixed 44.1 kHz is handled. The service runs continuously so senders
+can see it. `run_this_before_play_begins` (under `sessioncontrol`, with
+`wait_for_completion`) calls `addon-source start airplay` before every stream
+opens the device: the unit selects AirPlay, waking first if it has to, and
+the device is free when the hook returns. Selecting another input, or
+standby, restarts the service, which ends the sender's session; the sender
+pauses and does not reconnect by itself. The front panel and web UI name the
+input from its label, so both read "AirPlay".
 
 ## Verified
 
