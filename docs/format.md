@@ -62,7 +62,7 @@ files above under a single top-level directory named `<id>`. An addon with a
 | `service.unit` | The unit the switch controls; one of `units`. |
 | `service.defaultOn` | Initial state of the switch the first time the registry sees the addon. |
 | `input.code` | Code of the input the registry adds to the input table, marked with `addon: "<id>"`. Lower-case letters, digits, hyphens; a code the unit or another addon uses is refused. |
-| `input.label`, `order`, `formatDetectOption` | Seeded into the input entry as for any other input. |
+| `input.label`, `order`, `formatDetectOption` | Seeded into the input entry as for any other input. The input starts hidden from the input lists and is never in the remote's input cycle: a receiver's input is selected by its sender starting playback, since picking it by hand plays nothing. The user can show it from the input settings. |
 | `input.routesTo` | `i2s`: the addon plays into `default:I2S`, which one player at a time can open. |
 | `input.release` | `restart`: restart `service.unit` when the input is deselected or the unit enters standby, ending the sender's session. |
 | `input.shield` | `true`: raise the CPU shield while the input is selected and the unit is on. |
