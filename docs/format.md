@@ -66,8 +66,9 @@ files above under a single top-level directory named `<id>`. An addon with a
 | `input.routesTo` | `i2s`: the addon plays into `default:I2S`, which one player at a time can open. |
 | `input.release` | `restart`: restart `service.unit` when the input is deselected or the unit enters standby, ending the sender's session. |
 | `input.shield` | `true`: raise the CPU shield while the input is selected and the unit is on. |
-| `ui.switch` | Show an on/off switch on the Addons page. |
+| `ui.switch` | Show an on/off switch on the Addons page. It turns the service on and off, or, for an addon with `ui.home`, whether that page is the web UI. |
 | `ui.page` | Path of a page the addon serves under `www/`, under `/addons/<id>/`, linked from the Addons page. |
+| `ui.home` | Needs `ui-home/1`. Path of a page under `/addons/<id>/` that replaces the web UI: while the addon is switched on (off after install), `/` redirects there. Switched off or removed, `/` is the firmware's UI again, which `/ui/default` serves at all times. The first such addon by id wins. Build with absolute `/addons/<id>/` asset paths; the websocket is `/ws/controller`. |
 
 A UI-only or service-only addon omits what it does not use. Every field is
 type-checked before anything is installed, and an installed manifest that
