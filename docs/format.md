@@ -168,6 +168,11 @@ The unit exposes the catalog and the actions to the web UI:
   flow file (ids are one namespace). Node-RED starts no flow at all when one
   type is missing, so failing flows refuse the install, or later stay
   unlinked, with the reason on the Addons page.
+- Each `flows/<file>.yaml` is one tab labelled `addon-<id>-<file>` with every
+  node on it: config nodes scoped to that flow, no subflow definitions. A tab
+  edited in the unit's Node-RED editor (`/admin`) then saves back into the
+  addon's file; copy it out of `/var/lib/olympia/addons/<id>/flows/` into the
+  package.
 - Remove: stop the units (or refuse), run `hooks/uninstall`, unregister the
   units, remove drop-ins and symlinks, purge the packages the addon installed
   unless another installed addon's record lists them, delete the directory.
