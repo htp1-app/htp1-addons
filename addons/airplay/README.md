@@ -69,15 +69,15 @@ stock rootfs has the avahi *client* libraries but no daemon, which is why
 The manifest registers `airplay` as an input that routes to `i2s`. Selecting
 it sends the console verb `i2s` to avController, the same generic command
 `roon`, `b` and `usb` use; `ALSAI2S` tracks the sample rate on its own, so
-AirPlay's fixed 44.1 kHz is handled. The service runs continuously so senders
-can see it. `run_this_before_play_begins` (under `sessioncontrol`) calls
-`addon-source start airplay` before every stream opens the device: the unit
-selects AirPlay, waking first if it has to, and frees the device.
-`wait_for_completion` is "no", so shairport does not wait for that or for
-volume reports: AirPlay 2 Realtime tolerates about 50 ms of sync error, and
-waiting stalls the audio thread into underruns and constant resyncs. A
-stream that starts while another receiver holds the device may lose its
-first moments. Selecting another input, or
+AirPlay's fixed 44.1 kHz is handled. shairport opens the card as `hw:I2S,0`
+in S24_LE rather than through `default:I2S`: only on a device it knows is
+hardware does it use precision delay timing, and through the plug chain its
+delay readings were wrong enough that an AirPlay 2 stream resynced several
+times a second. The service runs continuously so senders can see it.
+`run_this_before_play_begins` (under `sessioncontrol`, with
+`wait_for_completion`) calls `addon-source start airplay` before every stream
+opens the device: the unit selects AirPlay, waking first if it has to, and
+the device is free when the hook returns. Selecting another input, or
 standby, restarts the service, which ends the sender's session; the sender
 pauses and does not reconnect by itself. The front panel and web UI name the
 input from its label, so both read "AirPlay".

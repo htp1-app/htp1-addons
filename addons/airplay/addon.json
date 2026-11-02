@@ -1,6 +1,6 @@
 {
   "id": "airplay",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "label": "AirPlay",
   "summary": "AirPlay 2 receiver (shairport-sync 4.3.7 with nqptp)",
   "requires": {
