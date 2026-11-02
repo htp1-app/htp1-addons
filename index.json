@@ -1,10 +1,10 @@
 {
   "name": "htp1-addons",
-  "updated": "2026-09-26T20:59:20Z",
+  "updated": "2026-11-02T00:41:49Z",
   "addons": [
     {
       "id": "airplay",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "label": "AirPlay",
       "summary": "AirPlay 2 receiver (shairport-sync 4.3.7 with nqptp)",
       "requires": {
@@ -12,9 +12,9 @@
           "source/1"
         ]
       },
-      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.2.0/htp1-addon-airplay-0.2.0.tar.gz",
-      "sha256": "0a314ebe160820fd584f5041c225df2f2817d8c4a48aa25b6c858340d3b7c79d",
-      "size": 519722
+      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.2.1/htp1-addon-airplay-0.2.1.tar.gz",
+      "sha256": "6a04918107120e35767b17915b0c5ef44800a1c984b36e8095e0b89e8441bd59",
+      "size": 519987
     },
     {
       "id": "dlna",
@@ -26,7 +26,7 @@
           "source/1"
         ]
       },
-      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.2.0/htp1-addon-dlna-0.2.0.tar.gz",
+      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.2.1/htp1-addon-dlna-0.2.0.tar.gz",
       "sha256": "9d3fcaf1aeddbfdf0510fd5c9a0def129fb73fee0f8b9221b4ce4505f81a0b9d",
       "size": 6404579
     },
@@ -40,7 +40,7 @@
           "source/1"
         ]
       },
-      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.2.0/htp1-addon-spotify-0.2.0.tar.gz",
+      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.2.1/htp1-addon-spotify-0.2.0.tar.gz",
       "sha256": "6f7e173f5083313bb1fd1f92351f5d9deaf9c36d5aef82cc3c2f6202132d6557",
       "size": 2244022
     }
