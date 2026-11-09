@@ -10,7 +10,7 @@ firmware does with them are in [docs/format.md](docs/format.md).
 | [`airplay`](addons/airplay) | AirPlay 2 receiver: shairport-sync 4.3.7 with nqptp and avahi-daemon | `source/1` |
 | [`spotify`](addons/spotify) | Spotify Connect receiver: librespot 0.4.2 | `source/1` |
 | [`dlna`](addons/dlna) | UPnP/DLNA renderer: gmediarender, patched to report playback starts | `source/1` |
-| [`volume-calibration`](addons/volume-calibration) | The Volume Calibration wizard, as a page opened from the Addons page | |
+| [`volume-calibration`](addons/volume-calibration) | The Volume Calibration wizard, as a page opened from the Addons page. Not published yet: it is not in the catalog | |
 
 The three receivers play into `default:I2S`, the sink Roon, USB audio and
 Bluetooth already use, so their audio gets Dirac, bass management and the
@@ -55,13 +55,15 @@ a unit.
 
 ```
 tools/index.sh v0.1.0
-git commit -am "Release v0.1.0" && git push
+git commit -am "Release v0.1.0"
+git tag v0.1.0 && git push origin v0.1.0
+gh release create v0.1.0 dist/*.tar.gz
+git push origin main
 ```
 
-Then create the GitHub release `v0.1.0` with the tarballs from `dist/` as its
-assets. The URLs in `index.json` point at those assets, so the index must not
-be pushed before the release exists, or a unit refreshing in between sees
-downloads that 404.
+The URLs in `index.json` point at the release's assets, and units read the
+index from `main`, so `main` is pushed last: pushed before the release
+exists, a unit refreshing in between sees downloads that 404.
 
 ## Build
 

@@ -1,14 +1,14 @@
 # airplay
 
 Makes the HTP-1 appear as an AirPlay target, so an iPhone, iPad or Mac can play
-to it directly. Audio lands on `default:I2S` — the same sink Roon, USB gadget
+to it directly. Audio lands on the I2S device — the same sink Roon, USB gadget
 audio and Bluetooth already use — and from there goes to the APM DSP, so it gets
 Dirac, bass management and the processor's own volume like any other input.
 
 **AirPlay 2 is what ships** — shairport-sync 4.3.7, built `--with-avahi`. That
 gets multi-room grouping with other AirPlay 2 devices, the Home app and Siri
 targeting, none of which AirPlay 1 offers. The AirPlay 1 build is still
-reproducible from `Dockerfile` and the reasoning is kept below, because the
+reproducible from `build/Dockerfile.airplay1` and the reasoning is kept below, because the
 route to AirPlay 2 went through it and the dependency notes still apply.
 
 ## What ships
@@ -84,7 +84,12 @@ input from its label, so both read "AirPlay".
 
 ## Verified
 
-2026-08-31 on the bench unit (firmware V2.1.3, avController 5.120):
+The AirPlay 2 build in 0.2.2, 2026-11-01 on the bench unit: an iPhone plays
+with the sync error held at 2 ms (about 20 ppm of correction), no resyncs
+and no PCM restarts after the stream starts.
+
+The earlier AirPlay 1 build, 2026-08-31 on the bench unit (firmware V2.1.3,
+avController 5.120):
 
 - binary runs, no unresolved libraries, reports
   `3.3.9-OpenSSL-tinysvcmdns-ALSA-pipe`
@@ -98,7 +103,7 @@ Not yet verified: audio actually playing from a sender end to end.
 
 ## AirPlay 2 — attempted 2026-08-31
 
-`Dockerfile.airplay2` builds shairport-sync **4.3.7 with AirPlay 2** plus
+`build/Dockerfile` (then `Dockerfile.airplay2`) builds shairport-sync **4.3.7 with AirPlay 2** plus
 `nqptp`. It works. Three risks were flagged before trying and **none of them
 turned out to be real**:
 
@@ -145,7 +150,7 @@ two responders on 5353 were observed coexisting fine during this test.
 
 ### Resolved — AirPlay 2 is what ships
 
-The two packages were accepted and installed, so `Dockerfile.airplay2` now
+The two packages were accepted and installed, so `build/Dockerfile` now
 builds `--with-avahi` and the result reports
 `4.3.7-AirPlay2-smi10-OpenSSL-Avahi-ALSA-pipe`. It advertises **both**
 `_airplay._tcp` and `_raop._tcp` and appears alongside the other AirPlay 2

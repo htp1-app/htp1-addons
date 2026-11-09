@@ -51,14 +51,14 @@ files above under a single top-level directory named `<id>`. An addon with a
 
 | Field | Meaning |
 |---|---|
-| `id` | Directory name and switch key. Lower-case letters, digits, hyphens. `catalog`, `install`, `remove`, `refresh` and `source` are taken by the endpoints. |
+| `id` | Directory name and switch key. Lower-case letters, digits, hyphens. `catalog`, `install`, `remove`, `refresh`, `source` and `operations` are taken by the endpoints. |
 | `version` | Semantic version of the package. |
 | `published` | `false` keeps a work-in-progress addon out of the catalog: `tools/index.sh` neither packs nor lists it, and a unit ignores such an entry if it meets one. Absent means published. |
 | `label`, `summary` | Shown on the Addons page. |
 | `requires.capabilities` | What the addon needs from the firmware beyond installation, such as `source/1` (below). A unit without one refuses the install and the Addons page says so. |
 | `requires.addons` | Addons that must be installed first; removal is refused while a dependant remains. |
 | `requires.firmware` | Constraint checked against `/var/lib/olympia/swver.txt` at install. Prefer a capability. |
-| `units` | Unit file name to mode. `link`: registered, started and stopped by the firmware from the switch. `enable`: enabled and started at install, started by systemd at boot. A unit the system or another addon already provides is refused. |
+| `units` | Unit file name to mode. `link`: registered only; the firmware starts and stops `service.unit` from the switch, and any other `link` unit must be pulled in by it (`Requires=`). `enable`: enabled and started at install, started by systemd at boot. A unit the system or another addon already provides is refused. |
 | `service.unit` | The unit the switch controls; one of `units`. |
 | `service.defaultOn` | Initial state of the switch the first time the registry sees the addon. |
 | `input.code` | Code of the input the registry adds to the input table, marked with `addon: "<id>"`. Lower-case letters, digits, hyphens; a code the unit or another addon uses is refused. |
@@ -81,8 +81,9 @@ An addon whose player writes to `default:I2S` calls
 
 - `addon-source start <id>`, synchronously, just before the player opens the
   device for a stream or a resume. The unit selects the input, waking first
-  if it has to, and the command returns once the device is free; another
-  player holding it is restarted. The latest start wins.
+  if it has to, and the command returns once the device is free, or after
+  about 2.5 s if it is still held; another addon player holding it is
+  restarted. The latest start wins.
 - `addon-source volume <id> <fraction>` as the sender's volume changes, 0 to
   1 of its range. The unit moves its own volume by each change (60 dB for the
   whole range, within its calibrated limits), so starting playback never
@@ -90,7 +91,8 @@ An addon whose player writes to `default:I2S` calls
   moves.
 - `addon-source mute <id>` when the sender mutes; moving up again unmutes.
 
-The command always exits 0. The receivers here show the three shapes:
+A well-formed call always exits 0; a malformed one prints its usage and
+exits 2. The receivers here show the three shapes:
 shairport-sync's `sessioncontrol` hooks with `wait_for_completion`, librespot's
 `--onevent` with `--emit-sink-events`, and gmediarender with a patched
 `--gstout-start-command`. The firmware side is described in its
@@ -122,7 +124,8 @@ The unit's Addons page keeps a list of repositories at
 none. A GitHub repository URL means the `index.json` on its main branch; any
 other URL is fetched as the index itself. When more than one repository
 offers an addon id, the first added wins, and an entry's repository is the
-one it came from. Entries with malformed fields are not offered. The unit
+one it came from. An install asks for the repository the page showed, which
+is then tried first. Entries with malformed fields are not offered. The unit
 fetches the index and the tarballs with its own `curl`, verifies `sha256`
 before installing, refuses an entry without one, and refuses a tarball that
 is not the id and version its entry names. Dependencies listed in
