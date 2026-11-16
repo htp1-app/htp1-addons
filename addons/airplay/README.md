@@ -73,7 +73,12 @@ AirPlay's fixed 44.1 kHz is handled. shairport opens the card as `hw:I2S,0`
 in S24_LE rather than through `default:I2S`: only on a device it knows is
 hardware does it use precision delay timing, and through the plug chain its
 delay readings were wrong enough that an AirPlay 2 stream resynced several
-times a second. The service runs continuously so senders can see it.
+times a second. The service runs continuously so senders can see it, and
+holds the card only while a stream plays. Stock shairport couples the two:
+`use_precision_timing = "yes"` also keeps the card open from its start,
+which locked Roon and the other players out in 0.2.2, and `auto` does not
+select precision timing on this card. The build removes the coupling
+(`build/Dockerfile`), and the setting stays `yes`.
 `run_this_before_play_begins` (under `sessioncontrol`, with
 `wait_for_completion`) calls `addon-source start airplay` before every stream
 opens the device: the unit selects AirPlay, waking first if it has to, and

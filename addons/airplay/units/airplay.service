@@ -3,8 +3,9 @@ Description=AirPlay receiver (shairport-sync)
 # Runs continuously so the unit stays discoverable: a sender can only wake a
 # device it can see, and while this was started and stopped with its input,
 # AirPlay was not even advertising unless it was already selected. Idle
-# receivers do not hold default:I2S (disable_standby_mode is "never" and the
-# drain timeout is short), so they coexist; whichever is actually streaming
+# receivers do not hold the I2S card (disable_standby_mode is "never", the
+# build takes keep_dac_busy out of use_precision_timing "yes", and the drain
+# timeout is short), so they coexist; whichever is actually streaming
 # takes the device, and its session hook selects the matching input.
 # Requires, not just After. AirPlay 2 needs both the timing peer and Avahi, so
 # starting this unit pulls them up and stopping it releases them. Declaring the

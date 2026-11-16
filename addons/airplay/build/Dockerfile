@@ -52,11 +52,27 @@ ARG SPS_VERSION=4.3.7
 RUN git clone --depth 1 --branch ${SPS_VERSION} \
       https://github.com/mikebrady/shairport-sync.git /src/sps
 
+# use_precision_timing "yes" also sets keep_dac_busy: the card is then opened
+# at start and held for good, which locks every other player on the unit out.
+# The unit needs the timing without the hold, so that one assignment goes. The
+# other one, under disable_standby_mode "always", stays. Fails the build if the
+# source no longer looks as expected.
+RUN sed -i '/config.use_precision_timing = YNA_YES;/{n;/config.keep_dac_busy = 1;/d}' /src/sps/audio_alsa.c \
+ && test "$(grep -c 'config.keep_dac_busy = 1;' /src/sps/audio_alsa.c)" = 1 \
+ && ! grep -A1 'config.use_precision_timing = YNA_YES;' /src/sps/audio_alsa.c | grep -q keep_dac_busy
+
 WORKDIR /src/sps
+# libsodium, libplist-2.0 and libconfig are not on the unit: they are linked in
+# from their static archives, and the build fails if one is still needed at
+# run time.
 RUN autoreconf -fi \
  && ./configure --with-alsa --with-avahi --with-ssl=openssl \
                 --with-airplay-2 --with-pipe \
- && make -j"$(nproc)"
+ && sed -i -e 's# -lsodium # /usr/lib/arm-linux-gnueabihf/libsodium.a #' \
+           -e 's# -L/usr/local/lib -lplist-2.0 # /usr/local/lib/libplist-2.0.a #' \
+           -e 's# -lconfig # /usr/lib/arm-linux-gnueabihf/libconfig.a #' Makefile \
+ && make -j"$(nproc)" \
+ && ! readelf -d shairport-sync | grep -E 'libsodium|libplist|libconfig'
 
 # --- nqptp ------------------------------------------------------------------
 # AirPlay 2 needs this alongside shairport-sync; it binds UDP 319/320 and
