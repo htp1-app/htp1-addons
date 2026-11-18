@@ -1,6 +1,6 @@
 {
   "id": "dlna",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "label": "DLNA",
   "summary": "UPnP/DLNA renderer (gmediarender)",
   "requires": {

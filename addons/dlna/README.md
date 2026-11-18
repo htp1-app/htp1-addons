@@ -7,9 +7,9 @@ chain signed by Google's Cast CA.
 
 | | |
 |---|---|
-| `debs/` | `gmediarender` 0.0.7, rebuilt with one patch, and the GStreamer 1.10 plugins and libraries it needs, exact Debian 9 packages, installed offline |
+| `debs/` | `gmediarender` 0.0.7, rebuilt with two patches, and the GStreamer 1.10 plugins and libraries it needs, exact Debian 9 packages, installed offline |
 | `units/upnp.service` | The renderer, on `default:I2S` |
-| `build/` | The patch and the cross-build that produces the `gmediarender` package |
+| `build/` | The patches and the cross-build that produces the `gmediarender` package |
 
 The renderer advertises under the unit name with a UUID derived from the
 serial number, so two units on one LAN do not collide. GStreamer's volume is
@@ -26,9 +26,16 @@ unit first if it has to, and the device is free when the renderer opens it.
 Selecting another input, or standby, restarts the renderer; it comes back on
 another UPnP port, and control points find it again over SSDP.
 
+Unpatched, a new track sent with SetAVTransportURI while one plays only
+changed what the renderer reported: the old track played on to its end, and
+after a pause, Play resumed the old track. The second patch
+(`build/htp1-new-uri-replaces-track.patch`) starts the new track at once,
+reopening the device at its own sample rate, and stops a paused track so Play
+starts the new one.
+
 Build with `docker build -t gmediarender-build build` and
 `docker run --rm -v "$PWD/debs":/out gmediarender-build`; the result is
-`gmediarender_0.0.7~git20160329+repack-1+htp1.1_armhf.deb`.
+`gmediarender_0.0.7~git20160329+repack-1+htp1.2_armhf.deb`.
 
 `-I <address>` is resolved at start from `eth0`, falling back to
 `hostname -I`; gmediarender does not accept `0.0.0.0`.

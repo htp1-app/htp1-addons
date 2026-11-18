@@ -1,10 +1,14 @@
 # Cross-build gmediarender for the HTP-1 (armhf, Debian 9) from Debian's own
-# source package with one patch, htp1-start-command-and-release.patch:
+# source package with two patches.  htp1-start-command-and-release.patch:
 #
 #   --gstout-start-command runs a command, and waits for it, before playback
 #     opens the audio device, so the unit can select DLNA and free the device.
 #   End of stream releases the device the way a stop does; unpatched, the
 #     renderer holds it until the next track, blocking every other source.
+#
+# htp1-new-uri-replaces-track.patch: SetAVTransportURI while playing starts
+#   the new track at once, at its own rate; while paused it stops, so Play
+#   starts the new track.  Unpatched, the old track played on to its end.
 #
 # Built on amd64 with the armhf cross toolchain, as spotify/build does, against
 # stretch so it links against the unit's own libraries. The result replaces
@@ -36,15 +40,17 @@ WORKDIR /src
 RUN apt-get update && apt-get source gmrender-resurrect=0.0.7~git20160329+repack-1 \
  && rm -rf /var/lib/apt/lists/*
 
-COPY htp1-start-command-and-release.patch /src/
+COPY htp1-start-command-and-release.patch htp1-new-uri-replaces-track.patch /src/
 RUN cd gmrender-resurrect-*/ \
  && mkdir -p debian/patches \
- && cp /src/htp1-start-command-and-release.patch debian/patches/ \
+ && cp /src/htp1-start-command-and-release.patch /src/htp1-new-uri-replaces-track.patch debian/patches/ \
  && echo htp1-start-command-and-release.patch >> debian/patches/series \
+ && echo htp1-new-uri-replaces-track.patch >> debian/patches/series \
  && { printf '%s\n' \
-        'gmrender-resurrect (0.0.7~git20160329+repack-1+htp1.1) stretch; urgency=medium' '' \
+        'gmrender-resurrect (0.0.7~git20160329+repack-1+htp1.2) stretch; urgency=medium' '' \
         '  * Run --gstout-start-command before playback opens the audio device.' \
-        '  * Release the audio device at the end of the stream.' '' \
+        '  * Release the audio device at the end of the stream.' \
+        '  * SetAVTransportURI replaces a playing or paused track.' '' \
       && printf ' -- HTP-1 addons <addons@htp1.invalid>  %s\n\n' "$(date -R)" \
       && cat debian/changelog; } > debian/changelog.new \
  && mv debian/changelog.new debian/changelog \

@@ -1,0 +1,31 @@
+--- a/src/upnp_transport.c
++++ b/src/upnp_transport.c
+@@ -647,6 +647,8 @@
+ 
+ /* UPnP action handlers */
+ 
++static void inform_play_transition_from_output(enum PlayFeedback fb);
++
+ static int set_avtransport_uri(struct action_event *event)
+ {
+ 	if (obtain_instanceid(event, NULL) < 0) {
+@@ -674,6 +676,19 @@
+ 	output_set_uri(uri, (requires_meta_update
+ 			     ? update_meta_from_stream
+ 			     : NULL));
++
++	// A new URI replaces the track now: unpatched, a playing track played
++	// on to its end and Play after a pause resumed the old one.
++	if (transport_state_ == TRANSPORT_PLAYING) {
++		replace_var(TRANSPORT_VAR_REL_TIME_POS, kZeroTime);
++		if (output_play(&inform_play_transition_from_output)) {
++			output_stop();
++			change_transport_state(TRANSPORT_STOPPED);
++		}
++	} else if (transport_state_ == TRANSPORT_PAUSED_PLAYBACK) {
++		output_stop();
++		change_transport_state(TRANSPORT_STOPPED);
++	}
+ 	service_unlock();
+ 
+ 	free(uri);
