@@ -1,6 +1,6 @@
 {
   "name": "htp1-addons",
-  "updated": "2026-11-16T23:06:26Z",
+  "updated": "2026-11-19T01:13:26Z",
   "addons": [
     {
       "id": "airplay",
@@ -12,13 +12,13 @@
           "source/1"
         ]
       },
-      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.2.3/htp1-addon-airplay-0.2.3.tar.gz",
+      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.2.4/htp1-addon-airplay-0.2.3.tar.gz",
       "sha256": "c03da50855df10386b3ecf33c1cfe60944865c5cb8c6472517d4b06a9600f528",
       "size": 548676
     },
     {
       "id": "dlna",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "label": "DLNA",
       "summary": "UPnP/DLNA renderer (gmediarender)",
       "requires": {
@@ -26,9 +26,9 @@
           "source/1"
         ]
       },
-      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.2.3/htp1-addon-dlna-0.2.0.tar.gz",
-      "sha256": "9d3fcaf1aeddbfdf0510fd5c9a0def129fb73fee0f8b9221b4ce4505f81a0b9d",
-      "size": 6404579
+      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.2.4/htp1-addon-dlna-0.2.1.tar.gz",
+      "sha256": "c4cfa838b587ca3b83a8ee382b9b26a03e9317e8c78b32aca14fedae80c2b042",
+      "size": 6404844
     },
     {
       "id": "spotify",
@@ -40,7 +40,7 @@
           "source/1"
         ]
       },
-      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.2.3/htp1-addon-spotify-0.2.0.tar.gz",
+      "url": "https://github.com/htp1-app/htp1-addons/releases/download/v0.2.4/htp1-addon-spotify-0.2.0.tar.gz",
       "sha256": "6f7e173f5083313bb1fd1f92351f5d9deaf9c36d5aef82cc3c2f6202132d6557",
       "size": 2244022
     }
